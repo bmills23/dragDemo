@@ -6,6 +6,7 @@ const moveButton = document.getElementById("move-button");
 const editable = document.getElementById("editable");
 const editableRect = editable.getBoundingClientRect();
 
+
 //Resizing
 let resizing = false;
 let aspectRatio;
@@ -24,23 +25,7 @@ let isPlaced = false;
 
 image.addEventListener("mousedown", event => {
     if (!resizing && !draggable) {
-    
-    const rect = image.getBoundingClientRect()  
-
-    let cursorX = event.clientX;
-    let cursorY = event.clientY;
-
-    let centerX = rect.left + rect.width/2;
-    let centerY = rect.top + rect.height/2;
-    
-    let offsetX = cursorX - centerX;
-    let offsetY = cursorY - centerY;
-
-    image.style.left = rect.left + offsetX + "px";
-    image.style.top = rect.top + offsetY + "px";
-        
-      // check if cursor is in bottom right quadrant
-    
+      //Dropdown Activated
       dropdown.classList.remove("hidden");
       dropdown.style.top = event.clientY + "px";
       dropdown.style.left = event.clientX + "px";
@@ -54,6 +39,8 @@ image.addEventListener("mousedown", event => {
     }
   });
   
+  let threshold = 50
+
   function handleResize() {
     // Set up resizing variables
     resizing = true;
@@ -75,17 +62,15 @@ image.addEventListener("mousedown", event => {
     dropdown.classList.add("hidden");
   }
 
-let leftThreshold = 50; 
-let rightThreshold = 50;
+let imageRect = image.getBoundingClientRect();
 
 image.addEventListener("mousemove", event => {
     if (resizing) {
+        
         let newWidth = aspectRatio * (event.clientY - initialY + initialHeight);
         image.style.width = newWidth + "px";
         image.style.height = (event.clientY - initialY + initialHeight) + "px";
-
-        let imageRect = image.getBoundingClientRect();
-
+     
         if (imageRect.left < editableRect.left) {
             left = editableRect.left;
         }
@@ -98,49 +83,37 @@ image.addEventListener("mousemove", event => {
         if (imageRect.bottom > editableRect.bottom) {
             top = editableRect.bottom - imageRect.height;
         }
-
-        // Check if image is mostly inside or mostly outside of the parent div
-        let insidePercentage = (imageRect.width * imageRect.height) / (editableRect.width * editableRect.height);
-        if (insidePercentage > 0.5) {
-            image.style.position = "relative";
-            image.style.cssFloat = "none";
-        } else {
-            if (image.style.position !== "absolute") {
-                image.style.position = "absolute";
-            }
-        }
+     
     }
     if (draggable) {
         let left = event.clientX - offsetX;
         let top = event.clientY - offsetY;
-        image.style.left = left + "px";
-        image.style.top = top + "px";
-
-        let imageRect = image.getBoundingClientRect();
-
-        if (imageRect.left < editableRect.left) {
+    
+        // Check if image is outside the left or top bounds of the parent div
+        if (left < editableRect.left) {
             left = editableRect.left;
         }
-        if (imageRect.top < editableRect.top) {
+        if (top < editableRect.top) {
             top = editableRect.top;
         }
-        if (imageRect.right > editableRect.right) {
-            left = editableRect.right - imageRect.width;
+    
+        // Check if image is outside the right or bottom bounds of the parent div
+        if (left + image.clientWidth > editableRect.right) {
+            left = editableRect.right - image.clientWidth;
         }
-        if (imageRect.bottom > editableRect.bottom) {
-            top = editableRect.bottom - imageRect.height;
+        if (top + image.clientHeight > editableRect.bottom) {
+            top = editableRect.bottom - image.clientHeight;
         }
-
-        // Check if image is mostly inside or mostly outside of the parent div
-        let insidePercentage = (imageRect.width * imageRect.height) / (editableRect.width * editableRect.height);
-        if (insidePercentage > 0.5) {
-            image.style.position = "relative";
-            image.style.cssFloat = "none";
+    
+        image.style.left = left + "px";
+        image.style.top = top + "px";
+    
+        // Check if image is mostly to the left or right of the parent div
+        if (event.clientX < editableRect.left + (editableRect.width / 2)) {
+            image.style.cssFloat = "left";
         } else {
-            if (image.style.position !== "absolute") {
-                image.style.position = "absolute";
-            }
+            image.style.cssFloat = "right";
         }
-    }
-        
-});
+      }
+      
+    });
