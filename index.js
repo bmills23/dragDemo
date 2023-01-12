@@ -63,6 +63,8 @@ image.addEventListener("mousedown", event => {
   }
 
 let imageRect = image.getBoundingClientRect();
+let middleX = editableRect.left + (editableRect.width / 2);
+
 
 image.addEventListener("mousemove", event => {
     if (resizing) {
@@ -88,32 +90,18 @@ image.addEventListener("mousemove", event => {
     if (draggable) {
         let left = event.clientX - offsetX;
         let top = event.clientY - offsetY;
-    
-        // Check if image is outside the left or top bounds of the parent div
-        if (left < editableRect.left) {
-            left = editableRect.left;
-        }
-        if (top < editableRect.top) {
-            top = editableRect.top;
-        }
-    
-        // Check if image is outside the right or bottom bounds of the parent div
-        if (left + image.clientWidth > editableRect.right) {
-            left = editableRect.right - image.clientWidth;
-        }
-        if (top + image.clientHeight > editableRect.bottom) {
-            top = editableRect.bottom - image.clientHeight;
-        }
-    
         image.style.left = left + "px";
         image.style.top = top + "px";
-    
-        // Check if image is mostly to the left or right of the parent div
-        if (event.clientX < editableRect.left + (editableRect.width / 2)) {
+
+        // Check if cursor is within left or right half of parent div
+        if (event.clientX < middleX && !isSnappedLeft) {
             image.style.cssFloat = "left";
-        } else {
+            isSnappedLeft = true;
+            isSnappedRight = false;
+        } else if (event.clientX >= middleX && !isSnappedRight) {
             image.style.cssFloat = "right";
+            isSnappedLeft = false;
+            isSnappedRight = true;
         }
-      }
-      
+    }
     });

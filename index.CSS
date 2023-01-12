@@ -25,6 +25,7 @@
 }
 
 p {
+    transition: float 0.25s ease-in;
     text-align: justify;
     z-index: 2;
 }
