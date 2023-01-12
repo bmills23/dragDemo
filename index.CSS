@@ -1,8 +1,15 @@
-#resizable-image:hover {
+#draggable-resizable-image:hover {
     cursor: pointer;
 }
 
+#draggable-resizable-image {
+    position: relative;
+}
+
 #editable {
+    align-items: center;
+    width: 80%;
+    height: 100%;
     position: relative;
 }
 
