@@ -70,7 +70,7 @@ class Image {
  
                 marginResizing = false, marginLeft = 0, marginRight = 0, marginTop = 0, marginBottom = 0, //Margin Editing) 
     
-                eventAdded = true) //Event Listening, defaults to true due forEach loop (line 377ish)
+                eventAdded = false) //Event Listening, defaults to false, needs to be activated with click
     { 
 
         this.image = image
@@ -112,7 +112,7 @@ class Image {
               dropdown.classList.remove("hidden");
 
               console.log("Dropdown unhidden")
-         
+
               dropdown.style.top = this.image.offsetTop + this.image.offsetHeight + "px"
               dropdown.style.left = this.image.offsetLeft + this.image.offsetWidth + "px"
         
@@ -374,45 +374,63 @@ class Image {
             
     }
 
-
-    toggleEventListeners = (event) => {
-
-        if (this.eventAdded) {
-
-            this.image.addEventListener("mousedown", this.handleMouseDown);
-            editable.addEventListener("mousedown", this.handleMouseDownDiv);
-            editable.addEventListener("mousemove", this.handleMouseMove);
-
-            this.eventAdded = false;
-
-       } else {
-
-            this.image.removeEventListener("mousedown", this.handleMouseDown);
-            editable.removeEventListener("mousedown", this.handleMouseDownDiv);
-            editable.removeEventListener("mousemove", this.handleMouseMove);
-            
-            this.eventAdded = true;
-
-       }
-    }
         
 }
 
-//Each Image Needs It's Own Event Listener
-images.forEach((image) => {
+let selectedImageIndex = -1
 
-    //Instatiate New Object for Each Image 
+images.forEach((image, index) => {
+
     let imageObject = new Image(image)
 
-    //For Logging
-    imageObjects.push(imageObject)  
+    imageObjects.push(imageObject)
 
-    imageObject.toggleEventListeners()
+    image.addEventListener("click", event => {
+        if (selectedImageIndex !== -1) {
 
-    
+            images[selectedImageIndex].classList.remove("selected");
+
+            image.removeEventListener("mousedown", imageObject.handleMouseDown(event))
+            editable.removeEventListener("mousedown", imageObject.handleMouseDownDiv(event))
+            editable.removeEventListener("mousemove", imageObject.handleMouseMove(event))
+
+        } else {
+
+            image.classList.add("selected");
+            selectedImageIndex = index;
+
+            image.addEventListener("mousedown", imageObject.handleMouseDown(event))
+            editable.addEventListener("mousedown", imageObject.handleMouseDownDiv(event))
+            editable.addEventListener("mousemove", imageObject.handleMouseMove(event))
+
+        }
+
+    });
+});
 
 
-})
+// //Each Image Needs It's Own Event Listener
+// images.forEach((image) => {
+
+//     //Instatiate New Object for Each Image 
+//     let imageObject = new Image(image)
+
+//     //For Logging
+//     imageObjects.push(imageObject)  
+
+//     image.addEventListener("click", (event, index) => {
+//         if (selectedImageIndex !== -1) {
+
+//             images[selectedImageIndex].classList.remove("selected");
+
+//             images[selectedImageIndex].removeEventListener("mousedown", imageObject.handleMouseDown());
+
+//         }
+//         image.classList.add("selected");
+//         selectedImageIndex = index;
+//     });
+
+// })
 
 
 //Coordinates Appended to Move Button
