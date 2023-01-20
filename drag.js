@@ -31,30 +31,6 @@ const paragraphs = document.querySelectorAll('p')
 let editableRect = editable.getBoundingClientRect()
 let middleX = editableRect.left + (editableRect.width / 2);
 
-//Global Variables Don't Do Much for Multiple Images
-// //Resizing Variables
-// let resizing = false;
-// let aspectRatio;
-// let initialX;
-// let initialY;
-// let initialWidth;
-// let initialHeight;
-
-// //Dragging
-// let draggable = false;
-// let offsetX;
-// let offsetY;
-// let isSnappedLeft = false;
-// let isSnappedRight = false;
-// let isPlaced = false;
-
-// //Margin
-// let marginResizing = false;
-// let marginLeft = false;
-// let marginRight = false;
-// let marginTop = false;
-// let marginBottom = false;
-
 //Redefines Editable Rect On Resize 
 window.addEventListener("resize", () => {
     editableRect = editable.getBoundingClientRect()
@@ -97,6 +73,8 @@ class Image {
 
         this.eventAdded = eventAdded
 
+        this.handleMMRef = event => this.handleMouseMove(event)
+
     }
 
     //Arrow Functions Inherit 'this' From Surrounding Scope
@@ -107,6 +85,10 @@ class Image {
         if (!this.resizing && 
             !this.draggable && 
             !this.marginResizing) {
+
+            let handleResizeButton = event => this.handleResize(event)
+            let handleMoveButton = event => this.handleMove(event)
+            let handleMarginButton = event => this.handleMargin(event)
         
               //Dropdown Activated
               dropdown.classList.remove("hidden");
@@ -117,30 +99,22 @@ class Image {
               dropdown.style.left = this.image.offsetLeft + this.image.offsetWidth + "px"
         
               // Add event listeners to the buttons
-              resizeButton.addEventListener("click", event => this.handleResize(event));
-              moveButton.addEventListener("click",event => this.handleMove(event));
-              marginButton.addEventListener("click", event => this.handleMargin(event));
+              resizeButton.addEventListener("click", handleResizeButton, { once: true });
+              moveButton.addEventListener("click", handleMoveButton, { once: true });
+              marginButton.addEventListener("click", handleMarginButton, { once: true });
       
             } else {
-    
-            this.resizing = false;
-            this.draggable = false;
-            
-            this.marginResizing = false;
-        
-            this.marginLeft = false;
-            this.marginRight = false;
-            this.marginTop = false;
-            this.marginBottom = false;
-       
-            dropdown.classList.add("hidden");
-            marginDropdown.classList.add("hidden");
-       
+
             if (!this.marginLeft || 
                 !this.marginRight || 
                 !this.marginTop || 
                 !this.marginBottom) {
-        
+
+                this.resizing = false;
+                this.draggable = false;
+                    
+                    this.marginResizing = false;
+               
                 marginSliderLeft.classList.add("hidden")
                 marginSliderRight.classList.add("hidden")
                 marginSliderTop.classList.add("hidden")
@@ -183,6 +157,11 @@ class Image {
       
     handleResize = (event) => {
 
+        console.log("Resizing")
+
+        editable.addEventListener("mousedown", this.removeMouseMove, { once : true });
+        this.image.addEventListener("mousedown", this.removeMouseMove, { once : true });
+        
         // Set up resizing variables
         this.resizing = true;   
         this.draggable = false;
@@ -195,11 +174,15 @@ class Image {
         this.initialWidth = this.image.clientWidth;
         this.initialHeight = this.image.clientHeight;
         dropdown.classList.add("hidden");
-    
+
     }
       
    handleMove = (event) => {
-    
+        console.log("Moving")    
+
+        editable.addEventListener("mousedown", this.removeMouseMove, { once : true });
+        this.image.addEventListener("mousedown", this.removeMouseMove, { once : true });
+
         // Set up draggable variables
         this.draggable = true;
         this.resizing = false;
@@ -208,6 +191,12 @@ class Image {
         this.offsetY = event.clientY - this.image.offsetTop;
         dropdown.classList.add("hidden");
         
+    }
+
+    removeMouseMove = () => {
+
+        editable.removeEventListener("mousemove", this.handleMMRef);
+
     }
     
     handleMargin = (event) => { 
@@ -238,6 +227,8 @@ class Image {
         if (this.resizing) {
         
             let imageRect = this.image.getBoundingClientRect()
+
+            console.log(imageRect)
               
             let left = event.clientX - this.offsetX;
             let top = event.clientY - this.offsetY;
@@ -268,16 +259,20 @@ class Image {
             if (imageRect.bottom > editableRect.bottom) {
                 this.image.style.top = editableRect.bottom - imageRect.height + "px";
             }   
+
+        }    
           
         if (this.draggable) {
+
+            console.log(this.draggable)
                   
             event.target.style.cursor = "pointer";
 
-            //
             let left = event.clientX - this.offsetX;
             let top = event.clientY - this.offsetY;
-            image.style.left = left + "px";
-            image.style.top = top + "px";
+
+            this.image.style.left = left + "px";
+            this.image.style.top = top + "px";
     
             // Check if cursor is within left or right half of parent div
             if (event.clientX < middleX) {
@@ -285,7 +280,7 @@ class Image {
                 this.isSnappedLeft = true;
                 this.isSnappedRight = false;
             } else if (event.clientX >= middleX) {
-                image.style.cssFloat = "right";
+                this.image.style.cssFloat = "right";
                 this.isSnappedLeft = false;
                 this.isSnappedRight = true;
             }
@@ -294,7 +289,7 @@ class Image {
                 let rect = paragraphs[i].getBoundingClientRect()
                 let lowerQuarter = rect.bottom / 4 
                 if (event.clientX > rect.left && event.clientX < rect.right && event.clientY > rect.bottom - lowerQuarter && event.clientY < rect.bottom) {
-                    paragraphs[i].appendChild(image);
+                    paragraphs[i].appendChild(this.image);
                 }
                     
             }
@@ -302,6 +297,8 @@ class Image {
         }
         
         if (this.marginResizing) {
+
+            console.log(this.marginResizing)
               
             leftMargin.addEventListener("click", event => {
     
@@ -310,8 +307,8 @@ class Image {
                 marginDropdown.classList.add("hidden")
                 marginSliderLeft.classList.remove("hidden")
         
-                marginSliderLeft.style.top = image.offsetTop + image.offsetHeight + "px" 
-                marginSliderLeft.style.left = image.offsetLeft + image.offsetWidth + "px"
+                marginSliderLeft.style.top = this.image.offsetTop + this.image.offsetHeight + "px" 
+                marginSliderLeft.style.left = this.image.offsetLeft + this.image.offsetWidth + "px"
         
                 marginSliderLeft.addEventListener("input", () => {
                     this.image.style.marginLeft = marginSliderLeft.value + "px";
@@ -372,66 +369,30 @@ class Image {
     
         }
             
-    }
+}
 
         
-}
+
 
 let selectedImageIndex = -1
 
 images.forEach((image, index) => {
-
     let imageObject = new Image(image)
-
     imageObjects.push(imageObject)
 
     image.addEventListener("click", event => {
-        if (selectedImageIndex !== -1) {
 
-            images[selectedImageIndex].classList.remove("selected");
+        let handleMD = event => imageObject.handleMouseDown(event)
+        let handleMDD = event => imageObject.handleMouseDownDiv(event)
 
-            image.removeEventListener("mousedown", imageObject.handleMouseDown(event))
-            editable.removeEventListener("mousedown", imageObject.handleMouseDownDiv(event))
-            editable.removeEventListener("mousemove", imageObject.handleMouseMove(event))
+        image.addEventListener("mousedown", handleMD, { once : true })
 
-        } else {
+        editable.addEventListener("mousedown", handleMDD, { once : true })
 
-            image.classList.add("selected");
-            selectedImageIndex = index;
-
-            image.addEventListener("mousedown", imageObject.handleMouseDown(event))
-            editable.addEventListener("mousedown", imageObject.handleMouseDownDiv(event))
-            editable.addEventListener("mousemove", imageObject.handleMouseMove(event))
-
-        }
-
+        editable.addEventListener("mousemove", imageObject.handleMMRef)
+        
     });
 });
-
-
-// //Each Image Needs It's Own Event Listener
-// images.forEach((image) => {
-
-//     //Instatiate New Object for Each Image 
-//     let imageObject = new Image(image)
-
-//     //For Logging
-//     imageObjects.push(imageObject)  
-
-//     image.addEventListener("click", (event, index) => {
-//         if (selectedImageIndex !== -1) {
-
-//             images[selectedImageIndex].classList.remove("selected");
-
-//             images[selectedImageIndex].removeEventListener("mousedown", imageObject.handleMouseDown());
-
-//         }
-//         image.classList.add("selected");
-//         selectedImageIndex = index;
-//     });
-
-// })
-
 
 //Coordinates Appended to Move Button
 const coordinates = document.createElement("div");
